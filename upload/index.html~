@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+<title>Upload The Relational Database File</title>
+</head>
+<body>
+<h1> Step 1: Upload the Relational Database File</h1>
+<p>Please make sure that the upload folder is writable,PHP needs to be installed on the server to make this module runable</p>
+<form action="upload_file.php" method="post" enctype="multipart/form-data">
+<label for="file">Filename:</label>
+<input type="file" name="file" id="file" /> <br>
+<input type="submit" name="submit" value="Submit" />
+</form>
+</body>
+</html>

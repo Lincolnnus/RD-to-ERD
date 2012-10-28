@@ -1,0 +1,26 @@
+SCHEMA
+Person(Pno, Name, Age)
+PersonPhone(Pno, PhoneNo)
+DrivingLicense(Pno, LicenseNo)
+Parent(Pno, ChildPno)
+Hospital(Hname, Address)
+Ward(Hname, WardNo, NumBeds)
+WardPatient(Hname, WardNo, PatientPno)
+
+INCLUSION DEPENDENCY
+PersonPhone(Pno) <= Person(Pno)
+DrivingLicense(Pno) <= Person(Pno)
+Parent(Pno) <= Person(Pno)
+Parent(ChildPno) <= Person(Pno)
+Ward(Hname) <= Hospital(Hname)
+WardPatient(Hname, WardNo) <= Ward(Hname, WardNo)
+WardPatient(PatientPno) <= Person(Pno)
+
+KEY (The first one is the primary key)
+Person: (Pno)
+PersonPhone: (Pno, PhoneNo)
+DrivingLicense: (Pno)
+Parent: (Pno, ChildPno)
+Hospital: (Hname)
+Ward: (Hname, WardNo)
+WardPatient: (Hname, WardNo, PatientPno)

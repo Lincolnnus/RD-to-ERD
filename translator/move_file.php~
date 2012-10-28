@@ -1,0 +1,10 @@
+<?php
+      $url=$_POST["url"];
+      $directory=$_POST["direct"];
+      echo $directory;
+      move_uploaded_file('relationship_json.txt',
+      $directory."/render/relationship_json.txt");
+      move_uploaded_file('entity_json.txt',
+      $directory."/render/entity_json.txt");
+      header('Location: http://www.example.com/');
+?>

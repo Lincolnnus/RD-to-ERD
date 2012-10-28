@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<!-- saved from url=(0060)https://dl-web.dropbox.com/get/CS4221/index3.html?w=3e9ae29a -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/ERDdrawing.js"></script>
+<script type="text/javascript" src="js/canvasutilities.js"></script>
+<script>
+
+/**CONSTANTS**/
+var firstColX = 200;
+var secondColX = 400;
+var thirdColX = 600;
+var ColY = 200;
+var line = 100;
+
+/**VARIABLES**/
+var numOfLeftEntity=0,//number of entities on the leftmost column
+numOfRightEntity=0,//number of entities on the rightmost column
+numofRelation=0,
+COLOR = "red",
+height=40,//height of the entity box
+attrHeight=20;//height of the attribute box
+
+var ctx;
+
+
+function drawEntity(entityArray)
+{
+
+/**  Entity
+***  The text size in entity is 20px
+**/
+
+for(var i=0;i<entityArray.length;i++)
+{	
+	if(i<=entityArray.length/2)
+	{
+		//first half of the entity array
+		
+		//the entity is placed in the leftmost column
+	
+		numOfLeftEntity++;
+		entityArray[i].x = firstColX;
+		entityArray[i].y = line*numOfLeftEntity;
+		entityArray[i].width = entityArray[i].name.length*10+20;
+	
+		//draw the entity
+		switch(entityArray[i].type)
+		{
+			case 'regular':
+				  drawRectangle(ctx, entityArray[i].x, entityArray[i].y, entityArray[i].width, height, COLOR, entityArray[i].name);
+				  break;
+			case 'weak':
+				  drawDoubleLineRect(ctx, entityArray[i].x, entityArray[i].y, entityArray[i].width, height, COLOR, entityArray[i].name);
+				  break;
+		}
+    	
+		//Attributes
+   	for(var j=0;j<entityArray[i].attributes.length;j++)
+	  {
+		var x1,y1,x2,y2; //x1,y1 - the line of the shaft of the arrow starts here
+						//x2,y2 - the line of the shaft of the arrow ends here
+		
+		x1 = entityArray[i].x;
+		y1 = entityArray[i].y+height/2;
+		entityArray[i].attributes[j].y=entityArray[i].y-50+j*(attrHeight+10); //attribute y coordinate
+		
+		if(entityArray[i].attributes[j].elements.length>1)
+		{
+			entityArray[i].attributes[j].x=entityArray[i].x - 100;//attribute x coordinate
+			x2 = entityArray[i].attributes[j].x;
+			y2 = entityArray[i].attributes[j].y + attrHeight + 5;		
+			
+			var space = 0;
+	
+			for(var k=0; k<entityArray[i].attributes[j].elements.length; k++)
+			{
+				var elementWidth = entityArray[i].attributes[j].elements[k].length*5+10;
+				var elementX = entityArray[i].attributes[j].x-elementWidth-space;
+				var elementY = entityArray[i].attributes[j].y;
+				
+				drawEllipse(ctx, elementX, elementY, elementWidth, attrHeight, COLOR, entityArray[i].attributes[j].elements[k]);//draw attribute element
+				space+=(elementWidth+10);
+	
+				//draw a line
+				ctx.beginPath();
+				ctx.moveTo(x2,y2);
+			    ctx.lineTo(elementX + elementWidth/2, elementY + attrHeight);
+				ctx.stroke();
+			}
+		}
+		else{
+			var elementWidth = entityArray[i].attributes[j].elements[0].length*5+10;
+			entityArray[i].attributes[j].x=entityArray[i].x-elementWidth - 100;//attribute x coordinate	
+			
+			drawEllipse(ctx,entityArray[i].attributes[j].x,entityArray[i].attributes[j].y, elementWidth, attrHeight, COLOR, entityArray[i].attributes[j].elements[0] );//draw attribute
+			
+			x2 = entityArray[i].attributes[j].x + elementWidth;
+			y2 = entityArray[i].attributes[j].y + attrHeight/2;
+		}
+		
+		//draw arrows
+		switch(entityArray[i].attributes[j].cardinality)
+		{
+			case "m:1":
+			drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+			break;
+			case "1:1":
+			drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+			break;
+			case "m:m":
+			drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+			drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+			break;
+			
+			case "1:m":
+			drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+			drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+			break;
+		}
+	  }
+	}
+	else{
+	//second half of entity array
+
+		//the entity is placed in the rightmost column
+		
+			numOfRightEntity++;
+			entityArray[i].x = thirdColX;
+			entityArray[i].y = line*numOfRightEntity;
+			entityArray[i].width = entityArray[i].name.length*10+20;
+	  
+			//draw the entity
+			switch(entityArray[i].type)
+			{
+				case 'regular':
+					  drawRectangle(ctx, entityArray[i].x, entityArray[i].y, entityArray[i].width, height, COLOR, entityArray[i].name);
+					  break;
+				case 'weak':
+					  drawDoubleLineRect(ctx, entityArray[i].x, entityArray[i].y, entityArray[i].width, height, COLOR, entityArray[i].name);
+					  break;
+			}
+			
+			//Attributes
+		for(var j=0;j<entityArray[i].attributes.length;j++)
+		  {
+			var x1,y1,x2,y2; //x1,y1 - the line of the shaft of the arrow starts here
+							//x2,y2 - the line of the shaft of the arrow ends here
+			
+			x1 = entityArray[i].x + entityArray[i].width;
+			y1 = entityArray[i].y+height/2;
+			entityArray[i].attributes[j].y=entityArray[i].y-50+j*(attrHeight+10); //attribute y coordinate
+			
+			if(entityArray[i].attributes[j].elements.length>1)
+			{
+				entityArray[i].attributes[j].x=entityArray[i].x + entityArray[i].width + 100;//attribute x coordinate
+				x2 = entityArray[i].attributes[j].x;
+				y2 = entityArray[i].attributes[j].y + attrHeight + 5;		
+				
+				var space = 0;
+		
+				for(var k=0; k<entityArray[i].attributes[j].elements.length; k++)
+				{
+					var elementWidth = entityArray[i].attributes[j].elements[k].length*5+10;
+					var elementX = entityArray[i].attributes[j].x+space;
+					var elementY = entityArray[i].attributes[j].y;
+					
+					drawEllipse(ctx,elementX,elementY, elementWidth, attrHeight, COLOR, entityArray[i].attributes[j].elements[k] );//draw attribute element
+					space+=(elementWidth+10);
+					
+					//draw a line
+					ctx.beginPath()
+					ctx.moveTo(x2,y2);
+					ctx.lineTo(elementX + elementWidth/2, elementY + attrHeight);
+					ctx.stroke();
+				}
+			}
+			else{
+				var elementWidth = entityArray[i].attributes[j].elements[0].length*5+10;
+				entityArray[i].attributes[j].x=entityArray[i].x + entityArray[i].width+100;//attribute x coordinate	
+				
+				drawEllipse(ctx,entityArray[i].attributes[j].x,entityArray[i].attributes[j].y, elementWidth, attrHeight, COLOR, entityArray[i].attributes[j].elements[0] );//draw attribute
+				
+				x2 = entityArray[i].attributes[j].x;
+				y2 = entityArray[i].attributes[j].y + attrHeight/2;
+			}
+			
+			//draw arrows
+			switch(entityArray[i].attributes[j].cardinality)
+			{
+				case "m:1":
+				drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+				break;
+				case "1:1":
+				drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+				break;
+				case "m:m":
+				drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+				drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+				break;
+				
+				case "1:m":
+				drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+				drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+				break;
+			}
+		  }
+	}
+}
+}
+function drawRelations(relationArray,entityArray)
+{
+//Relationship
+for(var i=0;i<relationArray.length;i++)
+{
+	  numofRelation++;	  
+	  relationArray[i].x=secondColX;
+	  relationArray[i].y=line*numofRelation;
+	  relationArray[i].width= relationArray[i].name.length*10+20;
+	  
+	  drawDiamond(ctx, relationArray[i].x, relationArray[i].y, relationArray[i].width, height, COLOR, relationArray[i].name);
+	  
+	  var endXUpper = 700;
+	  var endXLower = 700;
+	  
+	//Attributes
+	if(relationArray[i].attributes)
+	{
+   	for(var j=0;j<relationArray[i].attributes.length;j++)
+	  {
+		if(j<=relationArray[i].attributes.length/2)
+		{//upper row
+		
+		var x1,y1,x2,y2; //x1,y1 - the line of the shaft of the arrow starts here
+						//x2,y2 - the line of the shaft of the arrow ends here
+		
+			x1 = relationArray[i].x+relationArray[i].width/2;
+			y1 = relationArray[i].y;
+			relationArray[i].attributes[j].y=relationArray[i].y-attrHeight-20; //attribute y coordinate
+			
+		
+		if(relationArray[i].attributes[j].elements.length>1)
+		{
+			relationArray[i].attributes[j].x=endXUpper;
+		
+			x2 = relationArray[i].attributes[j].x;
+			y2 = relationArray[i].attributes[j].y + attrHeight + 10;
+				
+			var space = 0;
+			
+			for(var k=0; k<relationArray[i].attributes[j].elements.length; k++)
+			{
+				var elementWidth = relationArray[i].attributes[j].elements[k].length*5+10;
+				var elementX = relationArray[i].attributes[j].x-elementWidth-space;
+				var elementY = relationArray[i].attributes[j].y;
+				
+				drawEllipse(ctx,elementX,elementY, elementWidth, attrHeight, COLOR, relationArray[i].attributes[j].elements[k] );//draw attribute element
+				space+=(elementWidth+10);
+				
+				//draw a line
+				ctx.beginPath();
+				ctx.moveTo(x2,y2);
+				ctx.lineTo(elementX + elementWidth/2, elementY + attrHeight);		    
+				ctx.stroke();
+			}
+			
+			endXUpper -= space;
+		}
+		else{
+			var elementWidth = relationArray[i].attributes[j].elements[0].length*5+10;
+			relationArray[i].attributes[j].x=endXUpper-elementWidth;
+			
+			drawEllipse(ctx,relationArray[i].attributes[j].x,relationArray[i].attributes[j].y, elementWidth, attrHeight, COLOR, relationArray[i].attributes[j].elements[0] );//draw attribute
+			
+			x2 = relationArray[i].attributes[j].x + elementWidth/2;
+			y2 = relationArray[i].attributes[j].y + attrHeight;
+			
+			endXUpper -= (elementWidth+10);	
+		}
+		
+		//draw arrows
+		switch(relationArray[i].attributes[j].cardinality)
+		{
+			case "m:1":
+			drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+			break;
+			case "1:1":
+			drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+			break;
+			case "m:m":
+			drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+			drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+			break;
+			
+			case "1:m":
+			drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+			drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+			break;
+		}
+	  }
+	  
+		else
+	  {
+		//lower row
+		
+		var x1,y1,x2,y2; //x1,y1 - the line of the shaft of the arrow starts here
+						//x2,y2 - the line of the shaft of the arrow ends here
+		
+			x1 = relationArray[i].x+relationArray[i].width/2;
+			y1 = relationArray[i].y+height;
+			relationArray[i].attributes[j].y=relationArray[i].y+20; //attribute y coordinate		
+		
+		if(relationArray[i].attributes[j].elements.length>1)
+		{
+			relationArray[i].attributes[j].x=endXLower;
+		
+			x2 = relationArray[i].attributes[j].x - 10;
+			y2 = relationArray[i].attributes[j].y + height+ 10;
+				
+			var space = 0;
+			
+			for(var k=0; k<relationArray[i].attributes[j].elements.length; k++)
+			{
+				var elementWidth = relationArray[i].attributes[j].elements[k].length*5+10;
+				var elementX = relationArray[i].attributes[j].x-elementWidth-space;
+				var elementY = relationArray[i].attributes[j].y;
+				
+				drawEllipse(ctx,elementX,elementY, elementWidth, attrHeight, COLOR, relationArray[i].attributes[j].elements[k] );//draw attribute element
+				space+=(elementWidth+10);
+				
+				//draw a line
+				ctx.beginPath();
+				ctx.moveTo(x2,y2);
+				ctx.lineTo(elementX + elementWidth/2, elementY + attrHeight);		    
+				ctx.stroke();
+			}
+			
+			endXLower -= space;
+		}
+		else{
+			var elementWidth = relationArray[i].attributes[j].elements[0].length*5+10;
+			relationArray[i].attributes[j].x=endXLower-elementWidth;
+			
+			drawEllipse(ctx,relationArray[i].attributes[j].x,relationArray[i].attributes[j].y, elementWidth, attrHeight, COLOR, relationArray[i].attributes[j].elements[0] );//draw attribute
+			
+			x2 = relationArray[i].attributes[j].x + elementWidth/2;
+			y2 = relationArray[i].attributes[j].y;
+			
+			endXLower -= (elementWidth+10);	
+		}
+		
+		//draw arrows
+		switch(relationArray[i].attributes[j].cardinality)
+		{
+			case "m:1":
+			drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+			break;
+			case "1:1":
+			drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+			break;
+			case "m:m":
+			drawArrow(ctx,x1,y1,x2,y2,1,1,Math.PI/8,10);
+			drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+			break;
+			
+			case "1:m":
+			drawArrow(ctx,x1,y1,x2,y2,1,3,Math.PI/8,10);
+			drawArrow(ctx,x1,y1,x1+(x2-x1)*0.9,((y1-y2)/(x1-x2))*(x1+(x2-x1)*0.9-x1)+y1,1,1,Math.PI/8,10);
+			break;
+		}
+	  }
+	 }
+	}
+	if(relationArray[i].participating_entities)
+	  {
+		  if(relationArray[i].participating_entities.length>1)
+		  {
+			for(var j=0;j<relationArray[i].participating_entities.length;j++)
+			  {	
+				for(var k=0;k<entityArray.length;k++)
+				{
+					if(relationArray[i].participating_entities[j].name==entityArray[k].name)
+					{
+						//console.log(participating_entities[j].cardinality);
+						if(relationArray[i].name=="ID" || relationArray[i].name=="EX"||relationArray[i].name=="ISA")
+						{
+							if(entityArray[k].x == firstColX && relationArray[i].participating_entities[j].cardinality=="m")
+						{
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x+entityArray[k].width,entityArray[k].y+height/2);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x,relationArray[i].y+height/2);
+							ctx.stroke();
+						}
+						else if(entityArray[k].x == thirdColX  && relationArray[i].participating_entities[j].cardinality=="m")
+						{
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x,entityArray[k].y+height/2);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x+relationArray[i].width,relationArray[i].y+height/2);
+							ctx.stroke();
+						
+						}
+						else if(entityArray[k].x == firstColX && relationArray[i].participating_entities[j].cardinality=="1")
+						{
+							drawArrow(ctx,relationArray[i].x,relationArray[i].y+height/2,entityArray[k].x+entityArray[k].width,entityArray[k].y+height/2,1,1,Math.PI/8,10);
+						}
+						else if(entityArray[k].x == thirdColX  && relationArray[i].participating_entities[j].cardinality=="1" )
+						{
+							drawArrow(ctx,relationArray[i].x+relationArray[i].width,relationArray[i].y+height/2,entityArray[k].x,entityArray[k].y+height/2,1,1,Math.PI/8,10);
+						
+						}}
+						else
+						{if(entityArray[k].x == firstColX)
+						{
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x+entityArray[k].width,entityArray[k].y+height/2);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x,relationArray[i].y+height/2);
+							ctx.fillText(relationArray[i].participating_entities[j].cardinality,(entityArray[k].x+entityArray[k].width+relationArray[i].x)/2,(entityArray[k].y+height/2+relationArray[i].y+height/2)/2);
+							ctx.stroke();
+						}
+						else if(entityArray[k].x == thirdColX)
+						{
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x,entityArray[k].y+height/2);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x+relationArray[i].width,relationArray[i].y+height/2);
+							ctx.fillText(relationArray[i].participating_entities[j].cardinality,(entityArray[k].x+relationArray[i].width+relationArray[i].x)/2,(entityArray[k].y+height/2+relationArray[i].y+height/2)/2);
+							ctx.stroke();
+						}}
+					}
+				}
+			  }
+			  }
+			  
+			  else{
+					for(var k=0;k<entityArray.length;k++)
+				{
+					if(relationArray[i].participating_entities[0].name==entityArray[k].name)
+					{
+						if(entityArray[k].x == firstColX)
+						{
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x+entityArray[k].width,entityArray[k].y);//connect the entity and the attributes
+							ctx.fillText(relationArray[i].participating_entities[0].cardinality,(entityArray[k].x+entityArray[k].width+relationArray[i].x+relationArray[i].width/2)/2,(entityArray[k].y+relationArray[i].y)/2);
+							ctx.lineTo(relationArray[i].x+relationArray[i].width/2,relationArray[i].y);
+							ctx.stroke();
+							
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x+entityArray[k].width,entityArray[k].y+height);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x+relationArray[i].width/2,relationArray[i].y+height);
+							ctx.fillText(relationArray[i].participating_entities[0].cardinality,(entityArray[k].x+entityArray[k].width+relationArray[i].x+relationArray[i].width/2)/2,(entityArray[k].y+height+relationArray[i].y+height)/2);
+							ctx.stroke();
+						}
+						else if(entityArray[k].x == thirdColX)
+						{
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x,entityArray[k].y);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x+relationArray[i].width/2,relationArray[i].y);				
+							ctx.stroke();
+							
+							ctx.beginPath();
+							ctx.moveTo(entityArray[k].x,entityArray[k].y+height);//connect the entity and the attributes
+							ctx.lineTo(relationArray[i].x+relationArray[i].width/2,relationArray[i].y+height);				
+							ctx.fillText(relationArray[i].participating_entities[0].cardinality,(entityArray[k].x+entityArray[k].width+relationArray[i].x)/2,(entityArray[k].y+height/2+relationArray[i].y+height/2)/2);
+							ctx.stroke();
+							
+							
+						}
+					}
+				}
+			  
+			  }
+   }
+}
+}
+$(document).ready(function() {
+var entityArray,relationArray;
+var c=document.getElementById("myCanvas");
+ctx=c.getContext("2d");
+ctx.font="10px Arial";//font of the text in canvas
+$.ajax({
+  url: "entity_json.txt",
+  type: "POST",
+  dataType: "JSON"
+}).success(function ( data ) {
+	$("#ready").append(" Entity Ready ");
+	 entityArray=data;
+});
+
+$.ajax({
+	  url: "relationship_json.txt",
+	  type: "POST",
+	  dataType: "JSON"
+	}).success(function ( data ) {
+	 relationArray=data;
+	$("#ready").append(" Relation Ready ");
+});
+
+$("#draw").click(function() {
+	 ctx.clearRect(0,0,1300,1000);
+	 drawEntity(entityArray);
+	 drawRelations(relationArray,entityArray);
+});
+
+});
+</script>
+</head>
+<body>
+<h1>Step 4:Render the ER diagram</h1>
+<p> Please make sure that the entity and relation files are both ready.</p>
+<div id="ready"></div>
+<button id="draw">Show The ER Digram</button>
+<canvas id="myCanvas" width="1300" height="1000" style="border:1px solid #c3c3c3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+
+
+</body></html>

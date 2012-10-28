@@ -1,0 +1,26 @@
+<?php
+$allowedExts = array("txt");
+$extension = end(explode(".", $_FILES["file"]["name"]));
+if ((($_FILES["file"]["type"] == "text/plain"))
+&& ($_FILES["file"]["size"] < 20000)
+&& in_array($extension, $allowedExts))
+  {
+  if ($_FILES["file"]["error"] > 0)
+    {
+    echo "Return Code: " . $_FILES["file"]["error"] . "<br />";
+    }
+  else
+    {
+      move_uploaded_file($_FILES["file"]["tmp_name"],
+      "database.txt");
+      echo "<h1>Step 2: Check The CGI Support of The Server </h1>";
+      echo '<p>Please put the Python translator module into your CGI-Bin folder and it should be accessable via <a href="http://localhost/cgi-bin/translator/translate.py">http://localhost/cgi-bin/translator/translate.py </a> </p>';
+      echo '<p>For the translator to run properly, Python and CGI will need to be enabled. You should also set the translator folder and the files into readable/writable.</p>';
+      echo '<p><a href="http://localhost/cgi-bin/translator/translate.py"><button>Run The Translator</button></a></p>';
+    }
+  }
+else
+  {
+  echo "Invalid file";
+  }
+?>
